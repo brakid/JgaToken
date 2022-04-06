@@ -3,19 +3,45 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
+
 import './Owned.sol';
 
 contract JgaToken is ERC721, Owned {
-  mapping(address => string) private whitelist;
+  using Strings for uint256;
 
-  constructor() ERC721('VaultToken', 'VLT') {}
+  event WhitelistedAddressEvent (
+    address indexed whitelistedAddress,
+    uint256 timestamp
+  );
 
-  function _baseURI() internal view virtual override returns (string memory) {
-    return "https://brakid-vault.web.app/vault/";
-  }
+  mapping(address => bool) private whitelist;
+  mapping(address => bool) private minted;
 
-  function mint(uint256 tokenId) external onlyOwner returns (uint256) {
+  constructor() ERC721('JgaToken', 'JGT') {}
+
+  function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), 'ERC721Metadata: URI query for nonexistent token');
+
+        return string(
+          abi.encodePacked(
+            'https://github.com/brakid/JgaToken/raw/master/images/', 
+            tokenId.toString(),
+            '.png'));
+    }
+
+  function mint(uint256 tokenId) external returns (uint256) {
+    require(whitelist[msg.sender] == true, 'Sender is not whitelisted');
+    require(minted[msg.sender] == false, 'Sender has already minted');
+    minted[msg.sender] = true;
     _safeMint(msg.sender, tokenId);
     return tokenId;
+  }
+
+  function whitelistAddress(address addressToWhitelist) external onlyOwner {
+    require(whitelist[addressToWhitelist] == false, 'Address is already whitelisted');
+    whitelist[addressToWhitelist] = true;
+
+    emit WhitelistedAddressEvent(addressToWhitelist, block.timestamp);
   }
 }
