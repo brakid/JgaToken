@@ -29,7 +29,7 @@ describe('JgaToken', async () => {
   it('should return the Token Id', async () => {
     await jgaToken.whitelistAddress(anotherAddress, { from: ownerAddress })
 
-    const tokenId = new BN(1234567);
+    const tokenId = new BN(1);
     
     const receipt = await jgaToken.mint(tokenId, { from: anotherAddress });
     
@@ -42,13 +42,13 @@ describe('JgaToken', async () => {
     expect(await jgaToken.ownerOf(tokenId)).to.be.bignumber.equal(anotherAddress);
 
     const tokenUri = await jgaToken.tokenURI(tokenId);
-    expect(tokenUri).to.be.equal('https://github.com/brakid/JgaToken/raw/master/images/1234567.png');
+    expect(tokenUri).to.be.equal('https://github.com/brakid/JgaToken/raw/master/images/1.png');
   });
 
   it('should revert if address has already minted a token', async () => {
     await jgaToken.whitelistAddress(anotherAddress, { from: ownerAddress })
 
-    const tokenId = new BN(1234567);
+    const tokenId = new BN(1);
     
     const receipt = await jgaToken.mint(tokenId, { from: anotherAddress });
     
@@ -60,8 +60,19 @@ describe('JgaToken', async () => {
     
     expect(await jgaToken.ownerOf(tokenId)).to.be.bignumber.equal(anotherAddress);
 
-    const otherTokenId = new BN(12345678);
+    const otherTokenId = new BN(2);
 
     await expectRevert(jgaToken.mint(otherTokenId, { from: anotherAddress }), 'Sender has already minted');
+  });
+
+  it('should revert if address is not whitelisted', async () => {
+    const tokenId = new BN(1);
+    
+    await expectRevert(jgaToken.mint(tokenId, { from: anotherAddress }), 'Sender is not whitelisted');
+  });
+
+  it('should revert if token id is invalid', async () => {
+    await expectRevert(jgaToken.mint(new BN(0), { from: anotherAddress }), 'Invalid Token Id');
+    await expectRevert(jgaToken.mint(new BN(12), { from: anotherAddress }), 'Invalid Token Id');
   });
 });

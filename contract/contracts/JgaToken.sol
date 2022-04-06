@@ -31,6 +31,7 @@ contract JgaToken is ERC721, Owned {
     }
 
   function mint(uint256 tokenId) external returns (uint256) {
+    require(tokenId >= 1 && tokenId <= 11, 'Invalid Token Id');
     require(whitelist[msg.sender] == true, 'Sender is not whitelisted');
     require(minted[msg.sender] == false, 'Sender has already minted');
     minted[msg.sender] = true;
